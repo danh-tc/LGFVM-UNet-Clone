@@ -1,0 +1,62 @@
+# ==============================================================================
+# LGFVM-UNet dependencies
+# Tested: Python 3.10, CUDA 12.x driver (cu121 wheels), NVIDIA GPU required
+#
+# Usage:
+#   bash install.sh          <- one command, handles everything
+#
+# Manual steps (if not using install.sh):
+#   1. pip install torch==2.3.1+cu121 torchvision==0.18.1+cu121 \
+#          --index-url https://download.pytorch.org/whl/cu121
+#   2. pip install causal-conv1d==1.4.0 mamba-ssm==2.1.0 \
+#          --no-build-isolation
+#   3. pip install -r requirements.txt
+# ==============================================================================
+
+# --- PyTorch (cu121 build, CUDA 12.x compatible) ----------------------------
+--extra-index-url https://download.pytorch.org/whl/cu121
+torch==2.3.1+cu121
+torchvision==0.18.1+cu121
+
+# --- Mamba SSM CUDA extensions -----------------------------------------------
+# These compile from source — install.sh handles --no-build-isolation
+causal-conv1d==1.4.0
+mamba-ssm==2.1.0
+
+# --- NLP (pinned for mamba-ssm 2.1.0 compatibility) -------------------------
+transformers==4.46.3
+tokenizers==0.20.3
+
+# --- Vision ------------------------------------------------------------------
+# timm MUST be 0.4.12: code imports from timm.models.layers (old API path)
+timm==0.4.12
+einops
+
+# --- Medical imaging ---------------------------------------------------------
+MedPy
+SimpleITK
+nibabel
+
+# --- Scientific computing ----------------------------------------------------
+scipy
+scikit-learn
+scikit-image
+numpy
+
+# --- Training & monitoring ---------------------------------------------------
+tqdm
+colorama
+loguru
+tensorboard
+tensorboardX
+matplotlib
+
+# --- Image processing --------------------------------------------------------
+Pillow
+opencv-python
+
+# --- Misc utilities ----------------------------------------------------------
+thop
+PyYAML
+yacs
+ml_collections
