@@ -125,6 +125,10 @@ def main(config):
     min_loss = 999
     start_epoch = 1
     min_epoch = 1
+    best_dice = 0.0
+    best_dice_epoch = 1
+    early_stop_patience = 15
+    early_stop_counter = 0
 
 
 
@@ -139,8 +143,11 @@ def main(config):
         saved_epoch = checkpoint['epoch']
         start_epoch += saved_epoch
         min_loss, min_epoch, loss = checkpoint['min_loss'], checkpoint['min_epoch'], checkpoint['loss']
+        best_dice = checkpoint.get('best_dice', 0.0)
+        best_dice_epoch = checkpoint.get('best_dice_epoch', 1)
+        early_stop_counter = checkpoint.get('early_stop_counter', 0)
 
-        log_info = f'resuming model from {resume_model}. resume_epoch: {saved_epoch}, min_loss: {min_loss:.4f}, min_epoch: {min_epoch}, loss: {loss:.4f}'
+        log_info = f'resuming model from {resume_model}. resume_epoch: {saved_epoch}, min_loss: {min_loss:.4f}, best_dice: {best_dice:.4f}'
         logger.info(log_info)
 
 
@@ -166,12 +173,29 @@ def main(config):
         )
 
         if loss < min_loss:
-            torch.save(model.module.state_dict(), os.path.join(checkpoint_dir, 'best.pth'))
             min_loss = loss
             min_epoch = epoch
 
         if epoch % config.val_interval == 0:
             mean_dice, mean_hd95 = val_one_epochV2(val_loader, model, epoch, logger, config)
+            if mean_dice > best_dice:
+                best_dice = mean_dice
+                best_dice_epoch = epoch
+                early_stop_counter = 0
+                torch.save(model.module.state_dict(), os.path.join(checkpoint_dir, 'best.pth'))
+                log_info = f'New best model at epoch {epoch}: mean_dice={mean_dice:.4f}, mean_hd95={mean_hd95:.4f}'
+                print(log_info)
+                logger.info(log_info)
+            else:
+                early_stop_counter += config.val_interval
+                log_info = f'No improvement for {early_stop_counter} epochs (best={best_dice:.4f} at epoch {best_dice_epoch})'
+                print(log_info)
+                logger.info(log_info)
+                if early_stop_counter >= early_stop_patience:
+                    log_info = f'Early stopping triggered at epoch {epoch}'
+                    print(log_info)
+                    logger.info(log_info)
+                    break
             
 
         if epoch % config.save_interval == 0:
@@ -180,6 +204,9 @@ def main(config):
                 'min_loss': min_loss,
                 'min_epoch': min_epoch,
                 'loss': loss,
+                'best_dice': best_dice,
+                'best_dice_epoch': best_dice_epoch,
+                'early_stop_counter': early_stop_counter,
                 'model_state_dict': model.module.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
                 'scheduler_state_dict': scheduler.state_dict(),
@@ -191,19 +218,21 @@ def main(config):
                 'min_loss': min_loss,
                 'min_epoch': min_epoch,
                 'loss': loss,
+                'best_dice': best_dice,
+                'best_dice_epoch': best_dice_epoch,
+                'early_stop_counter': early_stop_counter,
                 'model_state_dict': model.module.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
                 'scheduler_state_dict': scheduler.state_dict(),
             }, os.path.join(checkpoint_dir, 'latest.pth'))
-    epoch = config.epochs
     if os.path.exists(os.path.join(checkpoint_dir, 'best.pth')):
         print('#----------Testing----------#')
         best_weight = torch.load(config.work_dir + 'checkpoints/best.pth', map_location=torch.device('cpu'))
         model.module.load_state_dict(best_weight)
-        mean_dice, mean_hd95 = val_one_epochV2(val_loader, model, epoch, logger, config)
+        mean_dice, mean_hd95 = val_one_epochV2(val_loader, model, best_dice_epoch, logger, config)
         os.rename(
             os.path.join(checkpoint_dir, 'best.pth'),
-            os.path.join(checkpoint_dir, f'best-epoch{min_epoch}-mean_dice{mean_dice:.4f}-mean_hd95{mean_hd95:.4f}.pth')
+            os.path.join(checkpoint_dir, f'best-epoch{best_dice_epoch}-mean_dice{mean_dice:.4f}-mean_hd95{mean_hd95:.4f}.pth')
         )      
 
 

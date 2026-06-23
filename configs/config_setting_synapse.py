@@ -45,8 +45,8 @@ class setting_config:
     rank = None
     amp = False
 
-    batch_size = 16    
-    epochs = 100
+    batch_size = 32
+    epochs = 200
     work_dir = 'results/' + network + '_' + datasets_name + '_' + datetime.now().strftime('%A_%d_%B_%Y_%Hh_%Mm_%Ss') + '/'
     print_interval = 20
     val_interval = 5
@@ -74,10 +74,10 @@ class setting_config:
         weight_decay = 0.05 # default: 0 – weight decay (L2 penalty) 
         amsgrad = False # default: False – whether to use the AMSGrad variant of this algorithm from the paper On the Convergence of Adam and Beyond
     elif opt == 'AdamW':
-        lr = 0.001 # default: 1e-3 – learning rate
+        lr = 1e-4 # paper: 1e-4
         betas = (0.9, 0.999) # default: (0.9, 0.999) – coefficients used for computing running averages of gradient and its square
         eps = 1e-8 # default: 1e-8 – term added to the denominator to improve numerical stability
-        weight_decay = 1e-2 # default: 1e-2 – weight decay coefficient
+        weight_decay = 1e-4 # paper: 1e-4
         amsgrad = False # default: False – whether to use the AMSGrad variant of this algorithm from the paper On the Convergence of Adam and Beyond 
     elif opt == 'Adamax':
         lr = 2e-3 # default: 2e-3 – learning rate

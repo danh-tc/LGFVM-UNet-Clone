@@ -362,7 +362,7 @@ class BceDiceLoss(nn.Module):
 
 
 class AdaptiveHierarchicalLoss(nn.Module):
-    def __init__(self, num_layers=4, tau=0.8, alpha=0.2, grad_clip=1.0, device=torch.device('cuda')):
+    def __init__(self, num_layers=4, tau=0.2, alpha=0.8, grad_clip=1.0, device=torch.device('cuda')):
         super().__init__()
         self.num_layers = num_layers
         self.tau = tau
