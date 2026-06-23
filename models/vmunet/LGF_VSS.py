@@ -483,22 +483,14 @@ class AttentionGate(nn.Module):
         )
 
     def forward(self, x, g):
-        print("xshape",x.size())
-        print("gshape",g.size())
         x = x.permute(0, 3, 1, 2)
         _, _, H, W = x.shape
         g = g.permute(0, 3, 1, 2)
         g_resized = F.interpolate(g, size=(H, W), mode='bilinear', align_corners=False)
-        print("g_resizedshape",g_resized.size())
         g_conv = self.W_g(g_resized)
-        print("g_convshape",g_conv.size())
         x_conv = self.W_x(x)
-        print("x_convshape",x_conv.size())
         spatial_att = torch.sigmoid(g_conv + x_conv)
-        print("spatial_attshape",spatial_att.size())
         channel_att = self.channel_att(spatial_att)
-        print("channel_attshape",channel_att.size())
-        exit()
         att = spatial_att * channel_att
         return x * self.psi(att)
 
@@ -646,16 +638,13 @@ class LGF_VSS(nn.Module):
     def forward_features(self, x):
         skip_list = []
         x = self.patch_embed(x)
-        print("embing",x.size())
         if self.ape:
             x = x + self.absolute_pos_embed
         x = self.pos_drop(x)
 
         for layer in self.layers:
-            print("skip",x.size())
             skip_list.append(x)
             x = layer(x)
-            print("after lgf",x.size())
         return x, skip_list
     
     def forward_features_up(self, x, skip_list):
@@ -696,7 +685,6 @@ class LGF_VSS(nn.Module):
 
     def forward(self, x):
         dec_outputs = None
-        print("begin",x.size())
         x, skip_list = self.forward_features(x)
         if self.fullScaleSkip is None:
             x = self.forward_features_up(x, skip_list)

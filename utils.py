@@ -408,7 +408,7 @@ class AdaptiveHierarchicalLoss(nn.Module):
         total_loss += 0.75 * loss_final     
         return total_loss
 
-    def _grad_hook(self):
+    def _grad_hook(self, l):
         def hook(grad):
             grad_mag = grad.abs().mean()
             self.grad_buffer.append(grad_mag)

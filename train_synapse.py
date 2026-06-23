@@ -148,8 +148,6 @@ def main(config):
 
 
     print('#----------Training----------#')
-    mean_dice, mean_hd95 = val_one_epochV2(val_loader, model, 90, logger, config)
-    exit()
     for epoch in range(start_epoch, config.epochs + 1):
 
         torch.cuda.empty_cache()

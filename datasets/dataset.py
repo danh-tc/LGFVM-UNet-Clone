@@ -116,7 +116,7 @@ class Synapse_dataset(Dataset):
         slice_name = self.sample_list[idx].strip('\n')
         data_path = os.path.join(self.data_dir, slice_name)
         data = np.load(data_path)
-        image = data['data'].astype(np.float32)
+        image = data['image'].astype(np.float32)
         if len(image.shape) == 2:
             image = np.expand_dims(image, axis=-1)
         if 'label' in data.files:
